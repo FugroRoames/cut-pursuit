@@ -30,7 +30,7 @@ class CutPursuit_L2 : public CutPursuit<T>
                 energy += .5*vertex_attribute_map(i_ver).weight
                         * pow(vertex_attribute_map(i_ver).observation[i_dim]
                             - vertex_attribute_map(i_ver).value[i_dim],2);
-            }          
+            }
         }
         pair_energy.first = energy;
         energy = 0;
@@ -66,6 +66,7 @@ class CutPursuit_L2 : public CutPursuit<T>
         std::vector<bool> binary_label(this->nVertex);
         //initialize the binary partition with kmeans
         this->init_labels(binary_label);
+
         //centers is the value of each binary component in the optimal partition
         VectorOfCentroids<T> centers(nb_comp, this->dim);
         //-----main loop----------------------------------------------------------------
@@ -75,8 +76,7 @@ class CutPursuit_L2 : public CutPursuit<T>
             //the regularization strength at this step
             //compute h_1 and h_2
             centers = VectorOfCentroids<T>(nb_comp, this->dim);
-            this->compute_centers(centers, nb_comp,binary_label);
-                    
+            this->compute_centers(centers, nb_comp, binary_label);
             this->set_capacities(centers);
             // update the capacities of the flow graph
             boost::boykov_kolmogorov_max_flow(
@@ -88,6 +88,7 @@ class CutPursuit_L2 : public CutPursuit<T>
                        get(boost::vertex_index                , this->main_graph),
                        this->source,
                        this->sink);
+
             for (uint32_t ind_com = 0; ind_com < nb_comp; ind_com++)
             {
                 if (this->saturated_components[ind_com])
@@ -110,13 +111,13 @@ class CutPursuit_L2 : public CutPursuit<T>
     //=============================================================================================
     inline void init_labels(std::vector<bool> & binary_label)
     { //-----initialize the labelling for each components with kmeans------------------------------
-        VertexAttributeMap<T> vertex_attribute_map 
+        VertexAttributeMap<T> vertex_attribute_map
                 = boost::get(boost::vertex_bundle, this->main_graph);
         VertexIndexMap<T> vertex_index_map = boost::get(boost::vertex_index, this->main_graph);
         uint32_t nb_comp = this->components.size();
         // ind_com;
         //#pragma omp parallel for private(ind_com) //if (nb_comp>=8) schedule(dynamic)
-		#pragma omp parallel for if (nb_comp >= omp_get_num_threads()) schedule(dynamic) 
+		#pragma omp parallel for if (nb_comp >= omp_get_num_threads()) schedule(dynamic)
         for (uint32_t ind_com = 0; ind_com < nb_comp; ind_com++)
         {
             std::vector< std::vector<T> > kernels(2, std::vector<T>(this->dim));
@@ -124,113 +125,113 @@ class CutPursuit_L2 : public CutPursuit<T>
             T best_energy;
             T current_energy;
             uint32_t comp_size = this->components[ind_com].size();
-            std::vector<bool> potential_label(comp_size);    
+            std::vector<bool> potential_label(comp_size);
             std::vector<T> energy_array(comp_size);
-            
+
             if (this->saturated_components[ind_com] || comp_size <= 1)
             {
                 continue;
             }
             for (uint32_t init_kmeans = 0; init_kmeans < this->parameter.kmeans_resampling; init_kmeans++)
             {//proceed to several initilialisation of kmeans and pick up the best one
-                //----- initialization with KM++ ------------------
+            //----- initialization with KM++ ------------------
             uint32_t first_kernel  = std::rand() % comp_size, second_kernel = 0; // first kernel attributed
 			for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
             {
 				kernels[0][i_dim] = vertex_attribute_map(this->components[ind_com][first_kernel ]).observation[i_dim];
 			}
-            best_energy = 0; //now compute the square distance of each pouint32_tto this kernel
-            #pragma omp parallel for if (nb_comp < omp_get_num_threads()) shared(best_energy) schedule(static) 
+            best_energy = 0; //now compute the square distance of each point this kernel
+            #pragma omp parallel for if (nb_comp < omp_get_num_threads()) shared(best_energy) schedule(static)
 			for (uint32_t i_ver = 0;  i_ver < comp_size; i_ver++)
             {
             	energy_array[i_ver] = 0;
                 for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
                 {
                 	energy_array[i_ver] += pow(vertex_attribute_map(this->components[ind_com][i_ver]).observation[i_dim]
-                                        - kernels[0][i_dim],2) * vertex_attribute_map(this->components[ind_com][i_ver]).weight;				
+                                        - kernels[0][i_dim],2) * vertex_attribute_map(this->components[ind_com][i_ver]).weight;
                 }
 				best_energy += energy_array[i_ver];
-             } // we now generate a random number to determinate which node will be the second kernel             
-				T random_sample = ((T)(rand())) / ((T)(RAND_MAX));
-                current_energy = best_energy * random_sample;
+            } // we now generate a random number to determinate which node will be the second kernel
+            T random_sample = ((T)(rand())) / ((T)(RAND_MAX));
+            current_energy = best_energy * random_sample;
+            for (uint32_t i_ver = 0;  i_ver < comp_size; i_ver++)
+            {
+                current_energy -= energy_array[i_ver];
+                if (current_energy < 0)
+                { //we have selected the second kernel
+                    second_kernel = i_ver;
+                    break;
+                }
+            }
+            for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
+            { // now fill the second kernel
+                kernels[1][i_dim] = vertex_attribute_map(this->components[ind_com][second_kernel]).observation[i_dim];
+            }
+            //----main kmeans loop-----
+            for (uint32_t ite_kmeans = 0; ite_kmeans < this->parameter.kmeans_ite; ite_kmeans++)
+            {
+                //--affectation step: associate each node with its closest kernel-------------------
+                #pragma omp parallel for if (nb_comp < omp_get_num_threads()) shared(potential_label) schedule(static)
                 for (uint32_t i_ver = 0;  i_ver < comp_size; i_ver++)
                 {
-                    current_energy -= energy_array[i_ver];
-                    if (current_energy < 0)
-                    { //we have selected the second kernel
-                        second_kernel = i_ver;        						
-                        break;
-                    }
-                }
-                for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
-                { // now fill the second kernel
-                   kernels[1][i_dim] = vertex_attribute_map(this->components[ind_com][second_kernel]).observation[i_dim];
-				}
-                //----main kmeans loop-----
-                for (uint32_t ite_kmeans = 0; ite_kmeans < this->parameter.kmeans_ite; ite_kmeans++)
-                {
-                    //--affectation step: associate each node with its closest kernel-------------------
-                    #pragma omp parallel for if (nb_comp < omp_get_num_threads()) shared(potential_label) schedule(static) 
-					for (uint32_t i_ver = 0;  i_ver < comp_size; i_ver++)
+                    std::vector<T> distance_kernels(2);
+                    for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
                     {
-                        std::vector<T> distance_kernels(2);
+                        distance_kernels[0] += pow(vertex_attribute_map(this->components[ind_com][i_ver]).observation[i_dim]
+                                                - kernels[0][i_dim],2);
+                        distance_kernels[1] += pow(vertex_attribute_map(this->components[ind_com][i_ver]).observation[i_dim]
+                                                - kernels[1][i_dim],2);
+                    }
+                    potential_label[i_ver] = distance_kernels[0] > distance_kernels[1];
+                }
+                //-----computation of the new kernels----------------------------
+                total_weight[0] = 0.;
+                total_weight[1] = 0.;
+                for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
+                {
+                    kernels[0][i_dim] = 0;
+                    kernels[1][i_dim] = 0;
+                }
+                #pragma omp parallel for if (nb_comp < omp_get_num_threads()) shared(potential_label) schedule(static)
+                for (uint32_t i_ver = 0;  i_ver < comp_size; i_ver++)
+                {
+                    if (vertex_attribute_map(this->components[ind_com][i_ver]).weight==0)
+                    {
+                        continue;
+                    }
+                    if (potential_label[i_ver])
+                    {
+                        total_weight[0] += vertex_attribute_map(this->components[ind_com][i_ver]).weight;
                         for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
                         {
-                           distance_kernels[0] += pow(vertex_attribute_map(this->components[ind_com][i_ver]).observation[i_dim]
-                                                  - kernels[0][i_dim],2);
-                           distance_kernels[1] += pow(vertex_attribute_map(this->components[ind_com][i_ver]).observation[i_dim]
-                                                  - kernels[1][i_dim],2);
+                            kernels[0][i_dim] += vertex_attribute_map(this->components[ind_com][i_ver]).observation[i_dim]
+                                                * vertex_attribute_map(this->components[ind_com][i_ver]).weight ;
                         }
-                        potential_label[i_ver] = distance_kernels[0] > distance_kernels[1];
                     }
-                    //-----computation of the new kernels----------------------------
-                    total_weight[0] = 0.;
-                    total_weight[1] = 0.;
-                    for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
+                    else
                     {
-                       kernels[0][i_dim] = 0;
-                       kernels[1][i_dim] = 0;
-                    }
-					#pragma omp parallel for if (nb_comp < omp_get_num_threads()) shared(potential_label) schedule(static) 
-                    for (uint32_t i_ver = 0;  i_ver < comp_size; i_ver++)
-                    {
-                        if (vertex_attribute_map(this->components[ind_com][i_ver]).weight==0)
+                        total_weight[1] += vertex_attribute_map(this->components[ind_com][i_ver]).weight;
+                        for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
                         {
-                            continue;
+                            kernels[1][i_dim] += vertex_attribute_map(this->components[ind_com][i_ver]).observation[i_dim]
+                                                * vertex_attribute_map(this->components[ind_com][i_ver]).weight;
                         }
-                        if (potential_label[i_ver])
-                        {
-                            total_weight[0] += vertex_attribute_map(this->components[ind_com][i_ver]).weight;
-                            for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
-                            {
-                                kernels[0][i_dim] += vertex_attribute_map(this->components[ind_com][i_ver]).observation[i_dim]
-                                                  * vertex_attribute_map(this->components[ind_com][i_ver]).weight ;
-                             }
-                         }
-                         else
-                         {
-                            total_weight[1] += vertex_attribute_map(this->components[ind_com][i_ver]).weight;
-                            for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
-                            {
-                                kernels[1][i_dim] += vertex_attribute_map(this->components[ind_com][i_ver]).observation[i_dim]
-                                                  * vertex_attribute_map(this->components[ind_com][i_ver]).weight;
-                            }
-                         }
-                    }    
-                    if ((total_weight[0] == 0)||(total_weight[1] == 0))
-                    {
-						//std::cout << "kmeans error : " << comp_size << std::endl;
-                        break;	
-                    }
-                    for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
-                    {
-                        kernels[0][i_dim] = kernels[0][i_dim] / total_weight[0];
-                        kernels[1][i_dim] = kernels[1][i_dim] / total_weight[1];
                     }
                 }
+                if ((total_weight[0] == 0)||(total_weight[1] == 0))
+                {
+                    //std::cout << "kmeans error : " << comp_size << std::endl;
+                    break;
+                }
+                for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
+                {
+                    kernels[0][i_dim] = kernels[0][i_dim] / total_weight[0];
+                    kernels[1][i_dim] = kernels[1][i_dim] / total_weight[1];
+                }
+            }
                 //----compute the associated energy ------
                 current_energy = 0;
-				#pragma omp parallel for if (nb_comp < omp_get_num_threads()) shared(potential_label) schedule(static) 
+				#pragma omp parallel for if (nb_comp < omp_get_num_threads()) shared(potential_label) schedule(static)
                 for (uint32_t i_ver = 0;  i_ver < comp_size; i_ver++)
                 {
                     for(uint32_t i_dim=0; i_dim < this->dim; i_dim++)
@@ -246,7 +247,7 @@ class CutPursuit_L2 : public CutPursuit<T>
                                         - kernels[1][i_dim],2) * vertex_attribute_map(this->components[ind_com][i_ver]).weight;
                         }
                    }
-                }                  
+                }
                 if (current_energy < best_energy)
                 {
                     best_energy = current_energy;

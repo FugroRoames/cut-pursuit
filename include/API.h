@@ -178,10 +178,10 @@ void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t 
     //------------write the solution-----------------------------
     VertexAttributeMap<T> vertex_attribute_map = boost::get(
             boost::vertex_bundle, cp->main_graph);
-    uint32_t ind_sol = 0;	
+    uint32_t ind_sol = 0;
     VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {        
+    {
         for(uint32_t i_dim=0; i_dim < nObs; i_dim++)
         {
             solution[ind_sol] = vertex_attribute_map[*ite_nod].value[i_dim];
@@ -198,6 +198,7 @@ void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t 
 //===========================================================================
 template<typename T>
 void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
+          , const T * xyz
           , const T * observation
           , const uint32_t * Eu, const uint32_t * Ev
           , const T * edgeWeight, const T * nodeWeight
@@ -207,18 +208,23 @@ void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t 
           , const float verbose)
 {   //C-style ++ interface
     std::srand (1);
+    std::cout << "C-style ++ interface\n";
     if (verbose > 0)
     {
         std::cout << "L0-CUT PURSUIT";
     }
+
+    printf("\ncut_pursuit: %4i components\n", components.size());
     //--------parameterization---------------------------------------------
     CP::CutPursuit<T> * cp = create_CP(mode, verbose);
     set_speed(cp, speed, verbose);
-    set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
+    set_up_CP(cp, n_nodes, n_edges, nObs, xyz, observation, Eu, Ev
              ,edgeWeight, nodeWeight);
     cp->parameter.reg_strenth = lambda;
+    printf("\ncut_pursuit: %4i components\n", components.size());
     //-------run the optimization------------------------------------------
     cp->run();
+    printf("\ncut_pursuit: %4i components\n", components.size());
     cp->compute_reduced_graph();
     //------------resize the vectors-----------------------------
     uint32_t n_nodes_red = boost::num_vertices(cp->reduced_graph);
@@ -229,7 +235,7 @@ void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t 
             boost::vertex_bundle, cp->main_graph);
     VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {        
+    {
         for(uint32_t ind_dim=0; ind_dim < nObs; ind_dim++)
         {
             solution[ind_nod][ind_dim] = vertex_attribute_map[*ite_nod].value[ind_dim];
@@ -247,7 +253,7 @@ void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t 
 		for(uint32_t ind_nod = 0; ind_nod < component_size; ind_nod++ )
 		{
 			components[ind_nod_red][ind_nod] = vertex_index_map(cp->components[ind_nod_red][ind_nod]);
-		}	
+		}
     }
     VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
@@ -262,539 +268,540 @@ void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t 
 //===========================================================================
 //=====================  cut_pursuit  C++-style  ============================
 //===========================================================================
-template<typename T>
-void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
-          , std::vector< std::vector<T> > & observation
-          , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
-          , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
-          , std::vector< std::vector<T> > & solution,  const T lambda, const T mode, const T speed
-          , const float verbose)
-{   //C-style ++ interface
-    std::srand (1);
-    if (verbose > 0)
-    {
-        std::cout << "L0-CUT PURSUIT";
-    }
-    //--------parameterization---------------------------------------------
-    CP::CutPursuit<T> * cp = create_CP(mode, verbose);
-    set_speed(cp, speed, verbose);
-    set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
-             ,edgeWeight, nodeWeight);
-    cp->parameter.reg_strenth = lambda;
-    //-------run the optimization------------------------------------------
-    cp->run();
-    //------------write the solution-----------------------------
-    VertexAttributeMap<T> vertex_attribute_map = boost::get(
-            boost::vertex_bundle, cp->main_graph);
-    VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {        
-        for(uint32_t ind_dim=0; ind_dim < nObs; ind_dim++)
-        {
-            solution[ind_nod][ind_dim] = vertex_attribute_map[*ite_nod].value[ind_dim];
-        }
-        ite_nod++;
-   }
-    delete cp;
-    return;
-}
-//===========================================================================
-//=====================  cut_pursuit  C++-style  ============================
-//===========================================================================
-template<typename T>
-void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
-          , std::vector<T>& observation
-          , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
-          , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
-          , std::vector<T> & solution,  const T lambda, const T mode, const T speed
-          , const float verbose)
-{   //C-style ++ interface
-    std::srand (1);
-    if (verbose > 0)
-    {
-        std::cout << "L0-CUT PURSUIT";
-    }
-    //--------parameterization---------------------------------------------
-    CP::CutPursuit<T> * cp = create_CP(mode, verbose);
-    set_speed(cp, speed, verbose);
-    set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
-             ,edgeWeight, nodeWeight);
-    cp->parameter.reg_strenth = lambda;
-    //-------run the optimization------------------------------------------
-    cp->run();
-    //------------write the solution-----------------------------
-    VertexAttributeMap<T> vertex_attribute_map = boost::get(
-            boost::vertex_bundle, cp->main_graph);
-    VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {        
-	solution[ind_nod] = vertex_attribute_map[*ite_nod].value[0];
-        ite_nod++;
-    }
-    delete cp;
-    return;
-}
+// template<typename T>
+// void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
+//           , std::vector< std::vector<T> > & observation
+//           , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
+//           , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
+//           , std::vector< std::vector<T> > & solution,  const T lambda, const T mode, const T speed
+//           , const float verbose)
+// {   //C-style ++ interface
+//     std::srand (1);
+//     if (verbose > 0)
+//     {
+//         std::cout << "L0-CUT PURSUIT";
+//     }
+//     //--------parameterization---------------------------------------------
+//     CP::CutPursuit<T> * cp = create_CP(mode, verbose);
+//     set_speed(cp, speed, verbose);
+//     set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
+//              ,edgeWeight, nodeWeight);
+//     cp->parameter.reg_strenth = lambda;
+//     //-------run the optimization------------------------------------------
+//     cp->run();
+//     //------------write the solution-----------------------------
+//     VertexAttributeMap<T> vertex_attribute_map = boost::get(
+//             boost::vertex_bundle, cp->main_graph);
+//     VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
+//         for(uint32_t ind_dim=0; ind_dim < nObs; ind_dim++)
+//         {
+//             solution[ind_nod][ind_dim] = vertex_attribute_map[*ite_nod].value[ind_dim];
+//         }
+//         ite_nod++;
+//    }
+//     delete cp;
+//     return;
+// }
+// //===========================================================================
+// //=====================  cut_pursuit  C++-style  ============================
+// //===========================================================================
+// template<typename T>
+// void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
+//           , std::vector<T>& observation
+//           , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
+//           , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
+//           , std::vector<T> & solution,  const T lambda, const T mode, const T speed
+//           , const float verbose)
+// {   //C-style ++ interface
+//     std::srand (1);
+//     if (verbose > 0)
+//     {
+//         std::cout << "L0-CUT PURSUIT";
+//     }
+//     //--------parameterization---------------------------------------------
+//     CP::CutPursuit<T> * cp = create_CP(mode, verbose);
+//     set_speed(cp, speed, verbose);
+//     set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
+//              ,edgeWeight, nodeWeight);
+//     cp->parameter.reg_strenth = lambda;
+//     //-------run the optimization------------------------------------------
+//     cp->run();
+//     //------------write the solution-----------------------------
+//     VertexAttributeMap<T> vertex_attribute_map = boost::get(
+//             boost::vertex_bundle, cp->main_graph);
+//     VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
+// 	solution[ind_nod] = vertex_attribute_map[*ite_nod].value[0];
+//         ite_nod++;
+//     }
+//     delete cp;
+//     return;
+// }
 
-//===========================================================================
-//=====================  cut_pursuit segmentation C++-style  ================
-//===========================================================================
-template<typename T>
-void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
-          , std::vector< std::vector<T> > & observation
-          , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
-          , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
-          , std::vector< std::vector<T> > & solution
-	  , std::vector<uint32_t> & in_component, std::vector< std::vector<uint32_t> > & components
-          , uint32_t & n_nodes_red, uint32_t & n_edges_red
-          , std::vector<uint32_t> & Eu_red, std::vector<uint32_t> & Ev_red
-          , std::vector<T> & edgeWeight_red, std::vector<T> & nodeWeight_red
-  	  , const T lambda, const T mode, const T speed
-          , const float verbose)
-{   //C-style ++ interface
-    std::srand (1);
-    if (verbose > 0)
-    {
-        std::cout << "L0-CUT PURSUIT";
-    }
-    //--------parameterization---------------------------------------------
-    CP::CutPursuit<T> * cp = create_CP(mode, verbose);
+// //===========================================================================
+// //=====================  cut_pursuit segmentation C++-style  ================
+// //===========================================================================
+// template<typename T>
+// void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
+//           , std::vector< std::vector<T> > & observation
+//           , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
+//           , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
+//           , std::vector< std::vector<T> > & solution
+// 	  , std::vector<uint32_t> & in_component, std::vector< std::vector<uint32_t> > & components
+//           , uint32_t & n_nodes_red, uint32_t & n_edges_red
+//           , std::vector<uint32_t> & Eu_red, std::vector<uint32_t> & Ev_red
+//           , std::vector<T> & edgeWeight_red, std::vector<T> & nodeWeight_red
+//   	  , const T lambda, const T mode, const T speed
+//           , const float verbose)
+// {   //C-style ++ interface
+//     std::srand (1);
+//     if (verbose > 0)
+//     {
+//         std::cout << "L0-CUT PURSUIT";
+//     }
+//     //--------parameterization---------------------------------------------
+//     CP::CutPursuit<T> * cp = create_CP(mode, verbose);
 
-    set_speed(cp, speed, verbose);
-    set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
-             ,edgeWeight, nodeWeight);
-    cp->parameter.reg_strenth = lambda;
-    //-------run the optimization------------------------------------------
-    cp->run();
-    cp->compute_reduced_graph();
-    //------------resize the vectors-----------------------------
-    n_nodes_red = boost::num_vertices(cp->reduced_graph);
-    n_edges_red = boost::num_edges(cp->reduced_graph);
-    in_component.resize(n_nodes);
-    components.resize(n_nodes_red);
-    Eu_red.resize(n_edges_red);
-    Ev_red.resize(n_edges_red);
-    edgeWeight_red.resize(n_edges_red);
-    nodeWeight_red.resize(n_nodes_red);
-    //------------write the solution-----------------------------
-    VertexAttributeMap<T> vertex_attribute_map = boost::get(
-            boost::vertex_bundle, cp->main_graph);
-    VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {        
-        for(uint32_t ind_dim=0; ind_dim < nObs; ind_dim++)
-        {
-            solution[ind_nod][ind_dim] = vertex_attribute_map[*ite_nod].value[ind_dim];
-        }
-        ite_nod++;
-    }
-  
-    //------------fill the components-----------------------------
-    VertexIndexMap<T> vertex_index_map = get(boost::vertex_index, cp->main_graph);
-    for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
-    {
-	uint32_t component_size = cp->components[ind_nod_red].size();
-        components[ind_nod_red] = std::vector<uint32_t>(component_size, 0);
-	for(uint32_t ind_nod = 0; ind_nod < component_size; ind_nod++ )
-    	{
-	    components[ind_nod_red][ind_nod] = vertex_index_map(cp->components[ind_nod_red][ind_nod]);
-	}	
-    }
-    //------------write the reduced graph-----------------------------
-    VertexAttributeMap<T> vertex_attribute_map_red = boost::get(
-            boost::vertex_bundle, cp->reduced_graph);
-    EdgeAttributeMap<T> edge_attribute_map_red = boost::get(
-            boost::edge_bundle, cp->reduced_graph);
-    VertexIndexMap<T> vertex_index_map_red = get(boost::vertex_index, cp->reduced_graph);
-    ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {
-        in_component[ind_nod] = vertex_attribute_map[*ite_nod].in_component;
-        ite_nod++;
-    }
-    ite_nod = boost::vertices(cp->reduced_graph).first;
-    for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
-    {
-	nodeWeight_red[ind_nod_red] = vertex_attribute_map_red[*ite_nod].weight;
-        ite_nod++;
-    }
-    EdgeIterator<T> ite_edg = boost::edges(cp->reduced_graph).first;
-    for(uint32_t ind_edg = 0; ind_edg < n_edges_red; ind_edg++ )
-    {    
-	edgeWeight_red[ind_edg] = edge_attribute_map_red[*ite_edg].weight;
-	Eu_red[ind_edg] = vertex_index_map_red(boost::source(*ite_edg, cp->reduced_graph));
-	Ev_red[ind_edg] = vertex_index_map_red(boost::target(*ite_edg, cp->reduced_graph));        
-        ite_edg++;
-    }
-    delete cp;
-    return;
-}
+//     set_speed(cp, speed, verbose);
+//     set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
+//              ,edgeWeight, nodeWeight);
+//     cp->parameter.reg_strenth = lambda;
+//     //-------run the optimization------------------------------------------
+//     cp->run();
+//     cp->compute_reduced_graph();
+//     //------------resize the vectors-----------------------------
+//     n_nodes_red = boost::num_vertices(cp->reduced_graph);
+//     n_edges_red = boost::num_edges(cp->reduced_graph);
+//     in_component.resize(n_nodes);
+//     components.resize(n_nodes_red);
+//     Eu_red.resize(n_edges_red);
+//     Ev_red.resize(n_edges_red);
+//     edgeWeight_red.resize(n_edges_red);
+//     nodeWeight_red.resize(n_nodes_red);
+//     //------------write the solution-----------------------------
+//     VertexAttributeMap<T> vertex_attribute_map = boost::get(
+//             boost::vertex_bundle, cp->main_graph);
+//     VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
+//         for(uint32_t ind_dim=0; ind_dim < nObs; ind_dim++)
+//         {
+//             solution[ind_nod][ind_dim] = vertex_attribute_map[*ite_nod].value[ind_dim];
+//         }
+//         ite_nod++;
+//     }
+
+//     //------------fill the components-----------------------------
+//     VertexIndexMap<T> vertex_index_map = get(boost::vertex_index, cp->main_graph);
+//     for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
+//     {
+// 	uint32_t component_size = cp->components[ind_nod_red].size();
+//         components[ind_nod_red] = std::vector<uint32_t>(component_size, 0);
+// 	for(uint32_t ind_nod = 0; ind_nod < component_size; ind_nod++ )
+//     	{
+// 	    components[ind_nod_red][ind_nod] = vertex_index_map(cp->components[ind_nod_red][ind_nod]);
+// 	}
+//     }
+//     //------------write the reduced graph-----------------------------
+//     VertexAttributeMap<T> vertex_attribute_map_red = boost::get(
+//             boost::vertex_bundle, cp->reduced_graph);
+//     EdgeAttributeMap<T> edge_attribute_map_red = boost::get(
+//             boost::edge_bundle, cp->reduced_graph);
+//     VertexIndexMap<T> vertex_index_map_red = get(boost::vertex_index, cp->reduced_graph);
+//     ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
+//         in_component[ind_nod] = vertex_attribute_map[*ite_nod].in_component;
+//         ite_nod++;
+//     }
+//     ite_nod = boost::vertices(cp->reduced_graph).first;
+//     for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
+//     {
+// 	nodeWeight_red[ind_nod_red] = vertex_attribute_map_red[*ite_nod].weight;
+//         ite_nod++;
+//     }
+//     EdgeIterator<T> ite_edg = boost::edges(cp->reduced_graph).first;
+//     for(uint32_t ind_edg = 0; ind_edg < n_edges_red; ind_edg++ )
+//     {
+// 	edgeWeight_red[ind_edg] = edge_attribute_map_red[*ite_edg].weight;
+// 	Eu_red[ind_edg] = vertex_index_map_red(boost::source(*ite_edg, cp->reduced_graph));
+// 	Ev_red[ind_edg] = vertex_index_map_red(boost::target(*ite_edg, cp->reduced_graph));
+//         ite_edg++;
+//     }
+//     delete cp;
+//     return;
+// }
 
 
-//===========================================================================
-//=====================  cut_pursuit segmentation light C++-style  ================
-//===========================================================================
-template<typename T>
-void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
-          , std::vector< std::vector<T> > & observation
-          , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
-          , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
-          , std::vector< std::vector<T> > & solution
-	  , std::vector<uint32_t> & in_component, std::vector< std::vector<uint32_t> > & components
-  	  , const T lambda, const T mode, const T speed
-          , const float verbose)
-{   //C-style ++ interface
-    std::srand (1);
-    if (verbose > 0)
-    {
-        std::cout << "L0-CUT PURSUIT";
-    }
-    //--------parameterization---------------------------------------------
-    CP::CutPursuit<T> * cp = create_CP(mode, verbose);
+// //===========================================================================
+// //=====================  cut_pursuit segmentation light C++-style  ================
+// //===========================================================================
+// template<typename T>
+// void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
+//           , std::vector< std::vector<T> > & observation
+//           , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
+//           , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
+//           , std::vector< std::vector<T> > & solution
+// 	  , std::vector<uint32_t> & in_component, std::vector< std::vector<uint32_t> > & components
+//   	  , const T lambda, const T mode, const T speed
+//           , const float verbose)
+// {   //C-style ++ interface
+//     std::srand (1);
+//     if (verbose > 0)
+//     {
+//         std::cout << "L0-CUT PURSUIT";
+//     }
+//     //--------parameterization---------------------------------------------
+//     CP::CutPursuit<T> * cp = create_CP(mode, verbose);
 
-    set_speed(cp, speed, verbose);
-    set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
-             ,edgeWeight, nodeWeight);
-    cp->parameter.reg_strenth = lambda;
-    //-------run the optimization------------------------------------------
-    cp->run();
-    cp->compute_reduced_graph();
-    //------------resize the vectors-----------------------------
-    uint32_t n_nodes_red = boost::num_vertices(cp->reduced_graph);
-    in_component.resize(n_nodes);
-    components.resize(n_nodes_red);
-    //------------write the solution-----------------------------
-    VertexAttributeMap<T> vertex_attribute_map = boost::get(
-            boost::vertex_bundle, cp->main_graph);
-    VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {        
-        for(uint32_t ind_dim=0; ind_dim < nObs; ind_dim++)
-        {
-            solution[ind_nod][ind_dim] = vertex_attribute_map[*ite_nod].value[ind_dim];
-        }
-        ite_nod++;
-    }
-    //------------fill the components-----------------------------
-    VertexIndexMap<T> vertex_index_map = get(boost::vertex_index, cp->main_graph);
-    for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
-    {
-		uint32_t component_size = cp->components[ind_nod_red].size();
-		    components[ind_nod_red] = std::vector<uint32_t>(component_size, 0);
-		for(uint32_t ind_nod = 0; ind_nod < component_size; ind_nod++ )
-		{
-			components[ind_nod_red][ind_nod] = vertex_index_map(cp->components[ind_nod_red][ind_nod]);
-		}	
-    }
-    ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {
-        in_component[ind_nod] = vertex_attribute_map[*ite_nod].in_component;
-        ite_nod++;
-    }
-    delete cp;
-    return;
-}
+//     set_speed(cp, speed, verbose);
+//     set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
+//              ,edgeWeight, nodeWeight);
+//     cp->parameter.reg_strenth = lambda;
+//     //-------run the optimization------------------------------------------
+//     cp->run();
+//     cp->compute_reduced_graph();
+//     //------------resize the vectors-----------------------------
+//     uint32_t n_nodes_red = boost::num_vertices(cp->reduced_graph);
+//     in_component.resize(n_nodes);
+//     components.resize(n_nodes_red);
+//     //------------write the solution-----------------------------
+//     VertexAttributeMap<T> vertex_attribute_map = boost::get(
+//             boost::vertex_bundle, cp->main_graph);
+//     VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
+//         for(uint32_t ind_dim=0; ind_dim < nObs; ind_dim++)
+//         {
+//             solution[ind_nod][ind_dim] = vertex_attribute_map[*ite_nod].value[ind_dim];
+//         }
+//         ite_nod++;
+//     }
+//     //------------fill the components-----------------------------
+//     VertexIndexMap<T> vertex_index_map = get(boost::vertex_index, cp->main_graph);
+//     for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
+//     {
+// 		uint32_t component_size = cp->components[ind_nod_red].size();
+// 		    components[ind_nod_red] = std::vector<uint32_t>(component_size, 0);
+// 		for(uint32_t ind_nod = 0; ind_nod < component_size; ind_nod++ )
+// 		{
+// 			components[ind_nod_red][ind_nod] = vertex_index_map(cp->components[ind_nod_red][ind_nod]);
+// 		}
+//     }
+//     ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
+//         in_component[ind_nod] = vertex_attribute_map[*ite_nod].in_component;
+//         ite_nod++;
+//     }
+//     delete cp;
+//     return;
+// }
 
-//===========================================================================
-//=====================  cut_pursuit segmentation C++-style  ================
-//===========================================================================
-template<typename T>
-void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
-          , std::vector< std::vector<T> > & observation
-          , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
-          , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
-          , std::vector< std::vector<T> > & solution
-	  , std::vector<uint32_t> & in_component, std::vector< std::vector<uint32_t> > & components
-          , std::vector< std::vector<uint32_t> > & borders
-          , uint32_t & n_nodes_red, uint32_t & n_edges_red
-          , std::vector<uint32_t> & Eu_red, std::vector<uint32_t> & Ev_red
-          , std::vector<T> & edgeWeight_red, std::vector<T> & nodeWeight_red
-  	  , const T lambda, const T mode, const T speed
-          , const float verbose)
-{   //C-style ++ interface
-    std::srand (1);
-    if (verbose > 0)
-    {
-        std::cout << "L0-CUT PURSUIT";
-    }
-    //--------parameterization---------------------------------------------
-    CP::CutPursuit<T> * cp = create_CP(mode, verbose);
+// //===========================================================================
+// //=====================  cut_pursuit segmentation C++-style  ================
+// //===========================================================================
+// template<typename T>
+// void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
+//           , std::vector< std::vector<T> > & observation
+//           , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
+//           , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
+//           , std::vector< std::vector<T> > & solution
+// 	  , std::vector<uint32_t> & in_component, std::vector< std::vector<uint32_t> > & components
+//           , std::vector< std::vector<uint32_t> > & borders
+//           , uint32_t & n_nodes_red, uint32_t & n_edges_red
+//           , std::vector<uint32_t> & Eu_red, std::vector<uint32_t> & Ev_red
+//           , std::vector<T> & edgeWeight_red, std::vector<T> & nodeWeight_red
+//   	  , const T lambda, const T mode, const T speed
+//           , const float verbose)
+// {   //C-style ++ interface
+//     std::srand (1);
+//     if (verbose > 0)
+//     {
+//         std::cout << "L0-CUT PURSUIT";
+//     }
+//     //--------parameterization---------------------------------------------
+//     CP::CutPursuit<T> * cp = create_CP(mode, verbose);
 
-    set_speed(cp, speed, verbose);
-    set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
-             ,edgeWeight, nodeWeight);
-    cp->parameter.reg_strenth = lambda;
-    //-------run the optimization------------------------------------------
-    cp->run();
-    cp->compute_reduced_graph();
-    //------------resize the vectors-----------------------------
-    n_nodes_red = boost::num_vertices(cp->reduced_graph);
-    n_edges_red = boost::num_edges(cp->reduced_graph);
-    in_component.resize(n_nodes);
-    components.resize(n_nodes_red);
-    Eu_red.resize(n_edges_red);
-    Ev_red.resize(n_edges_red);
-    edgeWeight_red.resize(n_edges_red);
-    nodeWeight_red.resize(n_nodes_red);
-    borders.resize(n_edges_red);
-    //------------write the solution-----------------------------
-    VertexAttributeMap<T> vertex_attribute_map = boost::get(
-            boost::vertex_bundle, cp->main_graph);
-    VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {        
-        for(uint32_t ind_dim=0; ind_dim < nObs; ind_dim++)
-        {
-            solution[ind_nod][ind_dim] = vertex_attribute_map[*ite_nod].value[ind_dim];
-        }
-        ite_nod++;
-    }
-  
-    //------------fill the components-----------------------------
-    VertexIndexMap<T> vertex_index_map = get(boost::vertex_index, cp->main_graph);
-    for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
-    {
-	uint32_t component_size = cp->components[ind_nod_red].size();
-        components[ind_nod_red] = std::vector<uint32_t>(component_size, 0);
-	for(uint32_t ind_nod = 0; ind_nod < component_size; ind_nod++ )
-    	{
-	    components[ind_nod_red][ind_nod] = vertex_index_map(cp->components[ind_nod_red][ind_nod]);
-	}	
-    }
-    //------------write the reduced graph-----------------------------
-    VertexAttributeMap<T> vertex_attribute_map_red = boost::get(
-            boost::vertex_bundle, cp->reduced_graph);
-    EdgeAttributeMap<T> edge_attribute_map_red = boost::get(
-            boost::edge_bundle, cp->reduced_graph);
-    VertexIndexMap<T> vertex_index_map_red = get(boost::vertex_index, cp->reduced_graph);
-    ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {
-        in_component[ind_nod] = vertex_attribute_map[*ite_nod].in_component;
-        ite_nod++;
-    }
-    ite_nod = boost::vertices(cp->reduced_graph).first;
-    for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
-    {
-	nodeWeight_red[ind_nod_red] = vertex_attribute_map_red[*ite_nod].weight;
-        ite_nod++;
-    }
-    EdgeIterator<T> ite_edg_red = boost::edges(cp->reduced_graph).first;
-    for(uint32_t ind_edg_red = 0; ind_edg_red < n_edges_red; ind_edg_red++ )
-    {    
-	edgeWeight_red[ind_edg_red] = edge_attribute_map_red[*ite_edg_red].weight;
-	Eu_red[ind_edg_red] = vertex_index_map_red(boost::source(*ite_edg_red, cp->reduced_graph));
-	Ev_red[ind_edg_red] = vertex_index_map_red(boost::target(*ite_edg_red, cp->reduced_graph)); 
-	//the order in which the edges are scanned with the iterator doesn not necessarily follow their index
-	uint32_t  ind_edg_red_in_graph = edge_attribute_map_red[*ite_edg_red].index;
-        for(uint32_t ind_edg = 0; ind_edg < cp->borders[ind_edg_red_in_graph].size(); ind_edg++ )
-    	{
-	    //we have to divide the index by 2 to find the corresponding index of input Eu Ev, because of the doubling of edges
-	    borders[ind_edg_red].push_back(edge_attribute_map_red[cp->borders[ind_edg_red_in_graph][ind_edg]].index/2);	  
-	}	   
-        ite_edg_red++;
-    }
-    delete cp;
-    return;
-}
+//     set_speed(cp, speed, verbose);
+//     set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
+//              ,edgeWeight, nodeWeight);
+//     cp->parameter.reg_strenth = lambda;
+//     //-------run the optimization------------------------------------------
+//     cp->run();
+//     cp->compute_reduced_graph();
+//     //------------resize the vectors-----------------------------
+//     n_nodes_red = boost::num_vertices(cp->reduced_graph);
+//     n_edges_red = boost::num_edges(cp->reduced_graph);
+//     in_component.resize(n_nodes);
+//     components.resize(n_nodes_red);
+//     Eu_red.resize(n_edges_red);
+//     Ev_red.resize(n_edges_red);
+//     edgeWeight_red.resize(n_edges_red);
+//     nodeWeight_red.resize(n_nodes_red);
+//     borders.resize(n_edges_red);
+//     //------------write the solution-----------------------------
+//     VertexAttributeMap<T> vertex_attribute_map = boost::get(
+//             boost::vertex_bundle, cp->main_graph);
+//     VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
+//         for(uint32_t ind_dim=0; ind_dim < nObs; ind_dim++)
+//         {
+//             solution[ind_nod][ind_dim] = vertex_attribute_map[*ite_nod].value[ind_dim];
+//         }
+//         ite_nod++;
+//     }
 
-//===========================================================================
-//=====================  cut_pursuit segmentation C++-style D = 1============
-//===========================================================================
-template<typename T>
-void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
-          , std::vector<T> & observation
-          , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
-          , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
-          , std::vector<T> & solution
-	  , std::vector<uint32_t> & in_component, std::vector< std::vector<uint32_t> > & components
-          , uint32_t & n_nodes_red, uint32_t & n_edges_red
-          , std::vector<uint32_t> & Eu_red, std::vector<uint32_t> & Ev_red
-          , std::vector<T> & edgeWeight_red, std::vector<T> & nodeWeight_red
-  	  , const T lambda, const T mode, const T speed
-          , const float verbose)
-{   //C-style ++ interface
-    std::srand (1);
-    if (verbose > 0)
-    {
-        std::cout << "L0-CUT PURSUIT";
-    }
-    //--------parameterization---------------------------------------------
-    CP::CutPursuit<T> * cp = create_CP(mode, verbose);
+//     //------------fill the components-----------------------------
+//     VertexIndexMap<T> vertex_index_map = get(boost::vertex_index, cp->main_graph);
+//     for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
+//     {
+// 	uint32_t component_size = cp->components[ind_nod_red].size();
+//         components[ind_nod_red] = std::vector<uint32_t>(component_size, 0);
+// 	for(uint32_t ind_nod = 0; ind_nod < component_size; ind_nod++ )
+//     	{
+// 	    components[ind_nod_red][ind_nod] = vertex_index_map(cp->components[ind_nod_red][ind_nod]);
+// 	}
+//     }
+//     //------------write the reduced graph-----------------------------
+//     VertexAttributeMap<T> vertex_attribute_map_red = boost::get(
+//             boost::vertex_bundle, cp->reduced_graph);
+//     EdgeAttributeMap<T> edge_attribute_map_red = boost::get(
+//             boost::edge_bundle, cp->reduced_graph);
+//     VertexIndexMap<T> vertex_index_map_red = get(boost::vertex_index, cp->reduced_graph);
+//     ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
+//         in_component[ind_nod] = vertex_attribute_map[*ite_nod].in_component;
+//         ite_nod++;
+//     }
+//     ite_nod = boost::vertices(cp->reduced_graph).first;
+//     for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
+//     {
+// 	nodeWeight_red[ind_nod_red] = vertex_attribute_map_red[*ite_nod].weight;
+//         ite_nod++;
+//     }
+//     EdgeIterator<T> ite_edg_red = boost::edges(cp->reduced_graph).first;
+//     for(uint32_t ind_edg_red = 0; ind_edg_red < n_edges_red; ind_edg_red++ )
+//     {
+// 	edgeWeight_red[ind_edg_red] = edge_attribute_map_red[*ite_edg_red].weight;
+// 	Eu_red[ind_edg_red] = vertex_index_map_red(boost::source(*ite_edg_red, cp->reduced_graph));
+// 	Ev_red[ind_edg_red] = vertex_index_map_red(boost::target(*ite_edg_red, cp->reduced_graph));
+// 	//the order in which the edges are scanned with the iterator doesn not necessarily follow their index
+// 	uint32_t  ind_edg_red_in_graph = edge_attribute_map_red[*ite_edg_red].index;
+//         for(uint32_t ind_edg = 0; ind_edg < cp->borders[ind_edg_red_in_graph].size(); ind_edg++ )
+//     	{
+// 	    //we have to divide the index by 2 to find the corresponding index of input Eu Ev, because of the doubling of edges
+// 	    borders[ind_edg_red].push_back(edge_attribute_map_red[cp->borders[ind_edg_red_in_graph][ind_edg]].index/2);
+// 	}
+//         ite_edg_red++;
+//     }
+//     delete cp;
+//     return;
+// }
 
-    set_speed(cp, speed, verbose);
-    set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
-             ,edgeWeight, nodeWeight);
-    cp->parameter.reg_strenth = lambda;
-    //-------run the optimization------------------------------------------
-    cp->run();
-    cp->compute_reduced_graph();
-    //------------resize the vectors-----------------------------
-    n_nodes_red = boost::num_vertices(cp->reduced_graph);
-    n_edges_red = boost::num_edges(cp->reduced_graph);
-    in_component.resize(n_nodes);
-    components.resize(n_nodes_red);
-    Eu_red.resize(n_edges_red);
-    Ev_red.resize(n_edges_red);
-    edgeWeight_red.resize(n_edges_red);
-    nodeWeight_red.resize(n_nodes_red);
-    //------------write the solution-----------------------------
-    VertexAttributeMap<T> vertex_attribute_map = boost::get(
-            boost::vertex_bundle, cp->main_graph);
-    VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {        
+// //===========================================================================
+// //=====================  cut_pursuit segmentation C++-style D = 1============
+// //===========================================================================
+// template<typename T>
+// void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
+//           , std::vector<T> & observation
+//           , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
+//           , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
+//           , std::vector<T> & solution
+// 	  , std::vector<uint32_t> & in_component, std::vector< std::vector<uint32_t> > & components
+//           , uint32_t & n_nodes_red, uint32_t & n_edges_red
+//           , std::vector<uint32_t> & Eu_red, std::vector<uint32_t> & Ev_red
+//           , std::vector<T> & edgeWeight_red, std::vector<T> & nodeWeight_red
+//   	  , const T lambda, const T mode, const T speed
+//           , const float verbose)
+// {   //C-style ++ interface
+//     std::srand (1);
+//     if (verbose > 0)
+//     {
+//         std::cout << "L0-CUT PURSUIT";
+//     }
+//     //--------parameterization---------------------------------------------
+//     CP::CutPursuit<T> * cp = create_CP(mode, verbose);
 
-        solution[ind_nod] = vertex_attribute_map[*ite_nod].value[0];
-        ite_nod++;
-    }
-  
-    //------------fill the components-----------------------------
-    VertexIndexMap<T> vertex_index_map = get(boost::vertex_index, cp->main_graph);
-    for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
-    {
-	uint32_t component_size = cp->components[ind_nod_red].size();
-        components[ind_nod_red] = std::vector<uint32_t>(component_size, 0);
-	for(uint32_t ind_nod = 0; ind_nod < component_size; ind_nod++ )
-    	{
-	    components[ind_nod_red][ind_nod] = vertex_index_map(cp->components[ind_nod_red][ind_nod]);
-	}	
-    }
-    //------------write the reduced graph-----------------------------
-    VertexAttributeMap<T> vertex_attribute_map_red = boost::get(
-            boost::vertex_bundle, cp->reduced_graph);
-    EdgeAttributeMap<T> edge_attribute_map_red = boost::get(
-            boost::edge_bundle, cp->reduced_graph);
-    VertexIndexMap<T> vertex_index_map_red = get(boost::vertex_index, cp->reduced_graph);
-    ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {
-        in_component[ind_nod] = vertex_attribute_map[*ite_nod].in_component;
-        ite_nod++;
-    }
-    ite_nod = boost::vertices(cp->reduced_graph).first;
-    for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
-    {
-	nodeWeight_red[ind_nod_red] = vertex_attribute_map_red[*ite_nod].weight;
-        ite_nod++;
-    }
-    EdgeIterator<T> ite_edg_red = boost::edges(cp->reduced_graph).first;
-    for(uint32_t ind_edg_red = 0; ind_edg_red < n_edges_red; ind_edg_red++ )
-    {    
-	edgeWeight_red[ind_edg_red] = edge_attribute_map_red[*ite_edg_red].weight;
-	Eu_red[ind_edg_red] = vertex_index_map_red(boost::source(*ite_edg_red, cp->reduced_graph));
-	Ev_red[ind_edg_red] = vertex_index_map_red(boost::target(*ite_edg_red, cp->reduced_graph)); 
-	//the order in which the edges are scanned with the iterator doesn not necessarily follow their index
-        ite_edg_red++;
-    }
-    delete cp;
-    return;
-}
-//===========================================================================
-//=====================  cut_pursuit_segmentation_full C++-style D = 1============
-//===========================================================================
-template<typename T>
-void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
-          , std::vector<T> & observation
-          , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
-          , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
-          , std::vector<T> & solution
-	  , std::vector<uint32_t> & in_component, std::vector< std::vector<uint32_t> > & components
-	  , std::vector< std::vector<uint32_t> > & borders
-          , uint32_t & n_nodes_red, uint32_t & n_edges_red
-          , std::vector<uint32_t> & Eu_red, std::vector<uint32_t> & Ev_red
-          , std::vector<T> & edgeWeight_red, std::vector<T> & nodeWeight_red
-  	  , const T lambda, const T mode, const T speed
-          , const float verbose)
-{   //C-style ++ interface
-    std::srand (1);
-    if (verbose > 0)
-    {
-        std::cout << "L0-CUT PURSUIT";
-    }
-    //--------parameterization---------------------------------------------
-    CP::CutPursuit<T> * cp = create_CP(mode, verbose);
+//     set_speed(cp, speed, verbose);
+//     set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
+//              ,edgeWeight, nodeWeight);
+//     cp->parameter.reg_strenth = lambda;
+//     //-------run the optimization------------------------------------------
+//     cp->run();
+//     cp->compute_reduced_graph();
+//     //------------resize the vectors-----------------------------
+//     n_nodes_red = boost::num_vertices(cp->reduced_graph);
+//     n_edges_red = boost::num_edges(cp->reduced_graph);
+//     in_component.resize(n_nodes);
+//     components.resize(n_nodes_red);
+//     Eu_red.resize(n_edges_red);
+//     Ev_red.resize(n_edges_red);
+//     edgeWeight_red.resize(n_edges_red);
+//     nodeWeight_red.resize(n_nodes_red);
+//     //------------write the solution-----------------------------
+//     VertexAttributeMap<T> vertex_attribute_map = boost::get(
+//             boost::vertex_bundle, cp->main_graph);
+//     VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
 
-    set_speed(cp, speed, verbose);
-    set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
-             ,edgeWeight, nodeWeight);
-    cp->parameter.reg_strenth = lambda;
-    //-------run the optimization------------------------------------------
-    cp->run();
-    cp->compute_reduced_graph();
-    //------------resize the vectors-----------------------------
-    n_nodes_red = boost::num_vertices(cp->reduced_graph);
-    n_edges_red = boost::num_edges(cp->reduced_graph);
-    in_component.resize(n_nodes);
-    components.resize(n_nodes_red);
-    borders.resize(n_edges_red);
-    Eu_red.resize(n_edges_red);
-    Ev_red.resize(n_edges_red);
-    edgeWeight_red.resize(n_edges_red);
-    nodeWeight_red.resize(n_nodes_red);
-    //------------write the solution-----------------------------
-    VertexAttributeMap<T> vertex_attribute_map = boost::get(
-            boost::vertex_bundle, cp->main_graph);
-    VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {        
-        solution[ind_nod] = vertex_attribute_map[*ite_nod].value[0];
-        ite_nod++;
-    }
-    //------------fill the components-----------------------------
-    VertexIndexMap<T> vertex_index_map = get(boost::vertex_index, cp->main_graph);
-    for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
-    {
-	uint32_t component_size = cp->components[ind_nod_red].size();
-        components[ind_nod_red] = std::vector<uint32_t>(component_size, 0);
-	for(uint32_t ind_nod = 0; ind_nod < component_size; ind_nod++ )
-    	{
-	    components[ind_nod_red][ind_nod] = vertex_index_map(cp->components[ind_nod_red][ind_nod]);
-	}	
-    }
+//         solution[ind_nod] = vertex_attribute_map[*ite_nod].value[0];
+//         ite_nod++;
+//     }
 
-    //------------write the reduced graph-----------------------------
-    VertexAttributeMap<T> vertex_attribute_map_red = boost::get(
-            boost::vertex_bundle, cp->reduced_graph);
-    EdgeAttributeMap<T> edge_attribute_map_red = boost::get(
-            boost::edge_bundle, cp->reduced_graph);
-    VertexIndexMap<T> vertex_index_map_red = get(boost::vertex_index, cp->reduced_graph);
-    ite_nod = boost::vertices(cp->main_graph).first;
-    for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
-    {
-        in_component[ind_nod] = vertex_attribute_map[*ite_nod].in_component;
-        ite_nod++;
-    }
-    ite_nod = boost::vertices(cp->reduced_graph).first;
-    for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
-    {
-	nodeWeight_red[ind_nod_red] = vertex_attribute_map_red[*ite_nod].weight;
-        ite_nod++;
-    }
-    EdgeIterator<T> ite_edg_red = boost::edges(cp->reduced_graph).first;
-    for(uint32_t ind_edg_red = 0; ind_edg_red < n_edges_red; ind_edg_red++ )
-    {   
-	edgeWeight_red[ind_edg_red] = edge_attribute_map_red[*ite_edg_red].weight;
-	Eu_red[ind_edg_red] = vertex_index_map_red(boost::source(*ite_edg_red, cp->reduced_graph));
-	Ev_red[ind_edg_red] = vertex_index_map_red(boost::target(*ite_edg_red, cp->reduced_graph));  
-        for(uint32_t ind_edg = 0; ind_edg < cp->borders.size(); ind_edg++ )
-    	{
-	    borders[ind_edg_red].push_back(edge_attribute_map_red[cp->borders[ind_edg_red]].index);	  
-	}	   
-        ite_edg_red++;
-    }
-    delete cp;
-    return;
-}
+//     //------------fill the components-----------------------------
+//     VertexIndexMap<T> vertex_index_map = get(boost::vertex_index, cp->main_graph);
+//     for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
+//     {
+// 	uint32_t component_size = cp->components[ind_nod_red].size();
+//         components[ind_nod_red] = std::vector<uint32_t>(component_size, 0);
+// 	for(uint32_t ind_nod = 0; ind_nod < component_size; ind_nod++ )
+//     	{
+// 	    components[ind_nod_red][ind_nod] = vertex_index_map(cp->components[ind_nod_red][ind_nod]);
+// 	}
+//     }
+//     //------------write the reduced graph-----------------------------
+//     VertexAttributeMap<T> vertex_attribute_map_red = boost::get(
+//             boost::vertex_bundle, cp->reduced_graph);
+//     EdgeAttributeMap<T> edge_attribute_map_red = boost::get(
+//             boost::edge_bundle, cp->reduced_graph);
+//     VertexIndexMap<T> vertex_index_map_red = get(boost::vertex_index, cp->reduced_graph);
+//     ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
+//         in_component[ind_nod] = vertex_attribute_map[*ite_nod].in_component;
+//         ite_nod++;
+//     }
+//     ite_nod = boost::vertices(cp->reduced_graph).first;
+//     for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
+//     {
+// 	nodeWeight_red[ind_nod_red] = vertex_attribute_map_red[*ite_nod].weight;
+//         ite_nod++;
+//     }
+//     EdgeIterator<T> ite_edg_red = boost::edges(cp->reduced_graph).first;
+//     for(uint32_t ind_edg_red = 0; ind_edg_red < n_edges_red; ind_edg_red++ )
+//     {
+// 	edgeWeight_red[ind_edg_red] = edge_attribute_map_red[*ite_edg_red].weight;
+// 	Eu_red[ind_edg_red] = vertex_index_map_red(boost::source(*ite_edg_red, cp->reduced_graph));
+// 	Ev_red[ind_edg_red] = vertex_index_map_red(boost::target(*ite_edg_red, cp->reduced_graph));
+// 	//the order in which the edges are scanned with the iterator doesn not necessarily follow their index
+//         ite_edg_red++;
+//     }
+//     delete cp;
+//     return;
+// }
+// //===========================================================================
+// //=====================  cut_pursuit_segmentation_full C++-style D = 1============
+// //===========================================================================
+// template<typename T>
+// void cut_pursuit(const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
+//           , std::vector<T> & observation
+//           , const std::vector<uint32_t> & Eu, const std::vector<uint32_t> & Ev
+//           , const std::vector<T> & edgeWeight, const std::vector<T> & nodeWeight
+//           , std::vector<T> & solution
+// 	  , std::vector<uint32_t> & in_component, std::vector< std::vector<uint32_t> > & components
+// 	  , std::vector< std::vector<uint32_t> > & borders
+//           , uint32_t & n_nodes_red, uint32_t & n_edges_red
+//           , std::vector<uint32_t> & Eu_red, std::vector<uint32_t> & Ev_red
+//           , std::vector<T> & edgeWeight_red, std::vector<T> & nodeWeight_red
+//   	  , const T lambda, const T mode, const T speed
+//           , const float verbose)
+// {   //C-style ++ interface
+//     std::srand (1);
+//     if (verbose > 0)
+//     {
+//         std::cout << "L0-CUT PURSUIT";
+//     }
+//     //--------parameterization---------------------------------------------
+//     CP::CutPursuit<T> * cp = create_CP(mode, verbose);
+
+//     set_speed(cp, speed, verbose);
+//     set_up_CP(cp, n_nodes, n_edges, nObs, observation, Eu, Ev
+//              ,edgeWeight, nodeWeight);
+//     cp->parameter.reg_strenth = lambda;
+//     //-------run the optimization------------------------------------------
+//     cp->run();
+//     cp->compute_reduced_graph();
+//     //------------resize the vectors-----------------------------
+//     n_nodes_red = boost::num_vertices(cp->reduced_graph);
+//     n_edges_red = boost::num_edges(cp->reduced_graph);
+//     in_component.resize(n_nodes);
+//     components.resize(n_nodes_red);
+//     borders.resize(n_edges_red);
+//     Eu_red.resize(n_edges_red);
+//     Ev_red.resize(n_edges_red);
+//     edgeWeight_red.resize(n_edges_red);
+//     nodeWeight_red.resize(n_nodes_red);
+//     //------------write the solution-----------------------------
+//     VertexAttributeMap<T> vertex_attribute_map = boost::get(
+//             boost::vertex_bundle, cp->main_graph);
+//     VertexIterator<T> ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
+//         solution[ind_nod] = vertex_attribute_map[*ite_nod].value[0];
+//         ite_nod++;
+//     }
+//     //------------fill the components-----------------------------
+//     VertexIndexMap<T> vertex_index_map = get(boost::vertex_index, cp->main_graph);
+//     for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
+//     {
+// 	uint32_t component_size = cp->components[ind_nod_red].size();
+//         components[ind_nod_red] = std::vector<uint32_t>(component_size, 0);
+// 	for(uint32_t ind_nod = 0; ind_nod < component_size; ind_nod++ )
+//     	{
+// 	    components[ind_nod_red][ind_nod] = vertex_index_map(cp->components[ind_nod_red][ind_nod]);
+// 	}
+//     }
+
+//     //------------write the reduced graph-----------------------------
+//     VertexAttributeMap<T> vertex_attribute_map_red = boost::get(
+//             boost::vertex_bundle, cp->reduced_graph);
+//     EdgeAttributeMap<T> edge_attribute_map_red = boost::get(
+//             boost::edge_bundle, cp->reduced_graph);
+//     VertexIndexMap<T> vertex_index_map_red = get(boost::vertex_index, cp->reduced_graph);
+//     ite_nod = boost::vertices(cp->main_graph).first;
+//     for(uint32_t ind_nod = 0; ind_nod < n_nodes; ind_nod++ )
+//     {
+//         in_component[ind_nod] = vertex_attribute_map[*ite_nod].in_component;
+//         ite_nod++;
+//     }
+//     ite_nod = boost::vertices(cp->reduced_graph).first;
+//     for(uint32_t ind_nod_red = 0; ind_nod_red < n_nodes_red; ind_nod_red++ )
+//     {
+// 	nodeWeight_red[ind_nod_red] = vertex_attribute_map_red[*ite_nod].weight;
+//         ite_nod++;
+//     }
+//     EdgeIterator<T> ite_edg_red = boost::edges(cp->reduced_graph).first;
+//     for(uint32_t ind_edg_red = 0; ind_edg_red < n_edges_red; ind_edg_red++ )
+//     {
+// 	edgeWeight_red[ind_edg_red] = edge_attribute_map_red[*ite_edg_red].weight;
+// 	Eu_red[ind_edg_red] = vertex_index_map_red(boost::source(*ite_edg_red, cp->reduced_graph));
+// 	Ev_red[ind_edg_red] = vertex_index_map_red(boost::target(*ite_edg_red, cp->reduced_graph));
+//         for(uint32_t ind_edg = 0; ind_edg < cp->borders.size(); ind_edg++ )
+//     	{
+// 	    borders[ind_edg_red].push_back(edge_attribute_map_red[cp->borders[ind_edg_red]].index);
+// 	}
+//         ite_edg_red++;
+//     }
+//     delete cp;
+//     return;
+// }
 
 //===========================================================================
 //=====================     SET_UP_CP C style   =============================
 //===========================================================================
 template<typename T>
 void set_up_CP(CP::CutPursuit<T> * cp, const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
-               ,const T * observation, const uint32_t * Eu, const uint32_t * Ev
+               ,const T * xyz, const T * observation, const uint32_t * Eu, const uint32_t * Ev
                ,const T * edgeWeight, const T * nodeWeight)
 {
+    std::cout << "set up CP - C style";
     cp->main_graph = Graph<T>(n_nodes);
     cp->dim = nObs;
     //--------fill the vertices--------------------------------------------
@@ -826,7 +833,7 @@ void set_up_CP(CP::CutPursuit<T> * cp, const uint32_t n_nodes, const uint32_t n_
                     , cp->main_graph), edgeWeight[ind_edg],2 * ind_edg
                     , edge_attribute_map))
 		{
-			true_ind_edg += 2;	
+			true_ind_edg += 2;
 		}
     }
 }
@@ -836,11 +843,13 @@ void set_up_CP(CP::CutPursuit<T> * cp, const uint32_t n_nodes, const uint32_t n_
 //===========================================================================
 template<typename T>
 void set_up_CP(CP::CutPursuit<T> * cp, const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
-               ,const std::vector< std::vector<T>> observation, const std::vector<uint32_t> Eu, const std::vector<uint32_t> Ev
+               , const std::vector< std::vector<T>> xyz, const std::vector< std::vector<T>> observation, const std::vector<uint32_t> Eu, const std::vector<uint32_t> Ev
                ,const std::vector<T> edgeWeight, const std::vector<T> nodeWeight)
 {
+    std::cout << "set up CP - C++ style";
     cp->main_graph = Graph<T>(n_nodes);
     cp->dim = nObs;
+    cp->xyz = xyz;
     //--------fill the vertices--------------------------------------------
     VertexAttributeMap<T> vertex_attribute_map = boost::get(
             boost::vertex_bundle, cp->main_graph);
@@ -862,7 +871,7 @@ void set_up_CP(CP::CutPursuit<T> * cp, const uint32_t n_nodes, const uint32_t n_
             , cp->main_graph);
     uint32_t true_ind_edg = 0; //this index count the number of edges ACTUALLY added
     for( uint32_t ind_edg = 0; ind_edg < n_edges; ind_edg++ )
-    {   //add edges in each direction	
+    {   //add edges in each direction
         if (addDoubledge(cp->main_graph, boost::vertex(Eu[ind_edg]
                     , cp->main_graph), boost::vertex(Ev[ind_edg]
                     , cp->main_graph), edgeWeight[ind_edg], true_ind_edg
@@ -878,9 +887,10 @@ void set_up_CP(CP::CutPursuit<T> * cp, const uint32_t n_nodes, const uint32_t n_
 //===========================================================================
 template<typename T>
 void set_up_CP(CP::CutPursuit<T> * cp, const uint32_t n_nodes, const uint32_t n_edges, const uint32_t nObs
-               ,const std::vector<T> observation, const std::vector<uint32_t> Eu, const std::vector<uint32_t> Ev
+               , const std::vector<T> xyz, const std::vector<T> observation, const std::vector<uint32_t> Eu, const std::vector<uint32_t> Ev
                ,const std::vector<T> edgeWeight, const std::vector<T> nodeWeight)
 {
+    std::cout << "set up CP - D = 1";
     cp->main_graph = Graph<T>(n_nodes);
     cp->dim = nObs;
     //--------fill the vertices--------------------------------------------
@@ -924,8 +934,21 @@ void set_speed(CP::CutPursuit<T> * cp, const T speed, const float verbose)
         cp->parameter.flow_steps  = 1;
         cp->parameter.kmeans_ite  = 3;
         cp->parameter.kmeans_resampling = 1;
-        cp->parameter.max_ite_main = 5;
+        cp->parameter.max_ite_main = 2;
         cp->parameter.backward_step = false;
+        cp->parameter.stopping_ratio = 0.001;
+    }
+    if (speed == 4)
+    {
+         if (verbose > 0)
+        {
+            std::cout << "PARAMETERIZATION = CUSTOM SPEED" << std::endl;
+        }
+        cp->parameter.flow_steps  = 5;
+        cp->parameter.kmeans_ite  = 5;
+        cp->parameter.kmeans_resampling = 2;
+        cp->parameter.max_ite_main = 10;
+        cp->parameter.backward_step = true;
         cp->parameter.stopping_ratio = 0.001;
     }
     if (speed == 2)
