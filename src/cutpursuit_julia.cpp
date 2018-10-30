@@ -7,7 +7,7 @@
 // using CxxWrap; @wrapmodule(joinpath("/home/josh/dev/superpoint_graph/partition/cut-pursuit/src/", "libcpjl"))
 // cut_pursuit(rand(3,10), rand(10,2), Int32.(rand(1:10, 10)), Int32.(rand(1:10,10)), ones(Float64,10))
 
-std::string cutpursuit_seg(jlcxx::ArrayRef<double, 2> xyz, jlcxx::ArrayRef<double, 2> obs, jlcxx::ArrayRef<int, 1> source, jlcxx::ArrayRef<int, 1> target, jlcxx::ArrayRef<double, 1> edge_weight)
+std::string cutpursuit_seg(jlcxx::ArrayRef<double, 2> obs, jlcxx::ArrayRef<int, 1> source, jlcxx::ArrayRef<int, 1> target, jlcxx::ArrayRef<double, 1> edge_weight)
 {
     const uint32_t n_ver = 1;
     const uint32_t n_edg = 1;
@@ -22,8 +22,8 @@ std::string cutpursuit_seg(jlcxx::ArrayRef<double, 2> xyz, jlcxx::ArrayRef<doubl
     // const uint32_t n_edg = len(source);
     // const uint32_t n_obs = len(obs);
 
-    float xyz_data[xyz.size()];
-    std::transform(xyz.begin(), xyz.end(), xyz_data, [](double d) { return static_cast<float>(d);});
+    // float xyz_data[xyz.size()];
+    // std::transform(xyz.begin(), xyz.end(), xyz_data, [](double d) { return static_cast<float>(d);});
 
     float obs_data[obs.size()];
     std::transform(obs.begin(), obs.end(), obs_data, [](double d) { return static_cast<float>(d);});
@@ -59,7 +59,7 @@ std::string cutpursuit_seg(jlcxx::ArrayRef<double, 2> xyz, jlcxx::ArrayRef<doubl
     float mode = 2.0f;
     float speed = 2.0f;
 
-    CP::cut_pursuit<float>(n_ver, n_edg, n_obs, xyz_data, obs_data, source_data, target_data, edge_weight_data, &node_weight[0]
+    CP::cut_pursuit<float>(n_ver, n_edg, n_obs, obs_data, source_data, target_data, edge_weight_data, &node_weight[0]
              , solution.data(), in_component, components, lambda, mode, speed, 2.f);
 
     return "cutpursuit seg";
