@@ -40,8 +40,6 @@ class CutPursuit
     uint32_t nEdge;   // number of edges between vertices (not counting the edge to source/sink)
     CP::VertexIterator<T> lastIterator; //iterator pointing to the last vertex which is neither sink nor source
     CPparameter<T> parameter;
-    std::vector< std::vector<T>> xyz;
-
     public:
     CutPursuit(uint32_t nbVertex = 1)
     {
@@ -59,10 +57,10 @@ class CutPursuit
         this->parameter.kmeans_ite  = 5;
         this->parameter.kmeans_resampling = 3;
         this->parameter.verbose = 2;
-        this->parameter.max_ite_main = 10;
+        this->parameter.max_ite_main = 6;
         this->parameter.backward_step = true;
         this->parameter.stopping_ratio = 0.0001;
-        this->parameter.fidelity = KL;
+        this->parameter.fidelity = L2;
         this->parameter.smoothing = 0.1;
         this->parameter.parallel = true;
     }
@@ -79,7 +77,6 @@ class CutPursuit
              <<   boost::num_edges(this->main_graph)  << " edges and observation of dimension "
              << this->dim << '\n';
         }
-        printf("\nCutPursuit: %4i components\n", (int)this->components.size());
         T energy_zero = this->compute_energy().first; //energy with 1 component
         T old_energy = energy_zero; //energy at the previous iteration
         //vector with time and energy, useful for benchmarking
@@ -88,10 +85,8 @@ class CutPursuit
         //the main loop
         for (uint32_t ite_main = 1; ite_main <= this->parameter.max_ite_main; ite_main++)
         {
-            printf("\nCutPursuit: %4i components\n", (int)this->components.size());
             //--------those two lines are the whole iteration-------------------------
             uint32_t saturation = this->split(); //compute optimal binary partition
-            printf("\nCutPursuit: %4i components\n", (int)this->components.size());
             this->reduce(); //compute the new reduced graph
             //-------end of the iteration - rest is stopping check and display------
             std::pair<T,T> energy = this->compute_energy();
