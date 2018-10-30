@@ -4,37 +4,19 @@
 #include "jlcxx/jlcxx.hpp"
 #include "jlcxx/array.hpp"
 
-// using CxxWrap; @wrapmodule(joinpath("/home/josh/dev/superpoint_graph/partition/cut-pursuit/src/", "libcpjl"))
-// cut_pursuit(rand(3,10), rand(10,2), Int32.(rand(1:10, 10)), Int32.(rand(1:10,10)), ones(Float64,10))
+// Testing commands:
+// open julia
+// > using CxxWrap; @wrapmodule(joinpath("/home/josh/dev/superpoint_graph/partition/cut-pursuit/src/", "libcpjl"))
+// > cut_pursuit(rand(3,10), rand(10,2), Int32.(rand(1:10, 10)), Int32.(rand(1:10,10)), ones(Float64,10))
 
 std::string cutpursuit_seg(jlcxx::ArrayRef<double, 2> obs, jlcxx::ArrayRef<int, 1> source, jlcxx::ArrayRef<int, 1> target, jlcxx::ArrayRef<double, 1> edge_weight)
 {
     const uint32_t n_ver = 1;
     const uint32_t n_edg = 1;
     const uint32_t n_obs = 1;
-    // float xyz_data[12];
-    // float obs_data[12];
-    // uint32_t source_data[1];
-    // uint32_t target_data[1];
-    // float edge_weight_data[1];
-
-    // const uint32_t n_ver = len(obs);
-    // const uint32_t n_edg = len(source);
-    // const uint32_t n_obs = len(obs);
-
-    // float xyz_data[xyz.size()];
-    // std::transform(xyz.begin(), xyz.end(), xyz_data, [](double d) { return static_cast<float>(d);});
 
     float obs_data[obs.size()];
     std::transform(obs.begin(), obs.end(), obs_data, [](double d) { return static_cast<float>(d);});
-
-    // debugging
-    // printf("\nsize: %zu \n", s);
-    // for (int i=0; i < 4; i++)
-    // {
-    //     printf("xyz[%d] = %f\n", i, xyz[i]);
-    //     printf("xyz_data[%d] = %f\n", i, xyz_data[i]);
-    // }
 
     uint32_t source_data[source.size()];
     std::transform(source.begin(), source.end(), source_data, [](double d) { return static_cast<uint32_t>(d);});
@@ -44,10 +26,6 @@ std::string cutpursuit_seg(jlcxx::ArrayRef<double, 2> obs, jlcxx::ArrayRef<int, 
 
     float edge_weight_data[source.size()];
     std::transform(edge_weight.begin(), edge_weight.end(), edge_weight_data, [](double d) { return static_cast<float>(d);});
-
-    // const uint32_t * source_data = reinterpret_cast<uint32_t*>(source.data());
-    // const uint32_t * target_data = reinterpret_cast<uint32_t*>(target.data());
-    // const float * edge_weight_data = reinterpret_cast<float*>(edge_weight.data());
 
     // float solution [n_ver * n_obs];
     std::vector<float> solution(n_ver * n_obs, 0.0f);
