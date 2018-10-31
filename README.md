@@ -4,15 +4,15 @@ C/C++ implementation of the L0-cut pursuit algorithms with Matlab and Python int
 ![illustration](https://user-images.githubusercontent.com/1902679/34037816-738cf4ba-e18a-11e7-9343-7c27209b27e6.png)
 
 Cut pursuit is a graph-cut-based working-set strategy to minimize functions regularized by graph-structured regularizers.
-For _G_ = (_V_, _E_, _w_) a graph with edges weighted by _w_, the problem writes:  
+For _G_ = (_V_, _E_, _w_) a graph with edges weighted by _w_, the problem writes:
 
-    min<sub>_x_ ∈ _Ω_<sup>_V_</sup></sub>    _f_(_x_) + 
+    min<sub>_x_ ∈ _Ω_<sup>_V_</sup></sub>    _f_(_x_) +
     ∑<sub>(_u_,_v_) ∈ _E_</sub> _w_<sub>(_u_,_v_)</sub>
-    _φ_(_x_<sub>_u_</sub> - _x_<sub>_v_</sub>)  
+    _φ_(_x_<sub>_u_</sub> - _x_<sub>_v_</sub>)
 
-where _Ω_ is the space in which lie the values associated with each node.  
+where _Ω_ is the space in which lie the values associated with each node.
 
-We distinguish two different cases for _φ_, corresponding to different implementations:  
+We distinguish two different cases for _φ_, corresponding to different implementations:
 - _φ_: _t_ ↦ |_t_|: the convex case, the regularizer is the __graph total variation__.
 Implemented for many different functionals _f_, such as quadratic, ℓ<sub>1</sub>-norm, box constraints, simplex constraints, linear, smoothed Kullback–Leibler.
 See repository [CP_PFDR_graph_d1](https://github.com/1a7r0ch3/CP_PFDR_graph_d1), by Hugo Raguet. It is well-suited for regularization and inverse problems with a low total variation prior.
@@ -22,7 +22,7 @@ See repository [CP_PFDR_graph_d1](https://github.com/1a7r0ch3/CP_PFDR_graph_d1),
 
 - quadratic fidelity: _φ_: _x_ ↦ ∑<sub>_v_ in _V_</sub>||_x_<sub>_v_</sub> - _y_<sub>_v_</sub>||² with y an observed value associated with node _v_ (best for partitioning)
 - linear fidelity: _φ_: _x_ ↦ - ∑<sub>_v_ in _V_</sub><_x_<sub>_v_</sub>, _y_<sub>_v_</sub>> with _y_<sub>_v_</sub> a weight associated with node _v_
-- Kullback leibler fidelity _φ_: _x_ ↦ ∑<sub>_v_ in _V_</sub> KL(_x_<sub>_v_</sub>, _p_<sub>_v_</sub>) with _p_<sub>_v_</sub> a probability associated with node _v_. Only apply when _Ω_ is a simplex 
+- Kullback leibler fidelity _φ_: _x_ ↦ ∑<sub>_v_ in _V_</sub> KL(_x_<sub>_v_</sub>, _p_<sub>_v_</sub>) with _p_<sub>_v_</sub> a probability associated with node _v_. Only apply when _Ω_ is a simplex
 
 # Requirement
 
@@ -33,7 +33,7 @@ You need boost 1.58, or 1.65 if you want the python wrapper.
 # Compilation
 
 ### C++
-make sure that you use the following CPPFLAGS: 
+Make sure that you use the following CPPFLAGS:
 ```set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pthread -fopenmp -O3 -Wall -std=c++11")```
 
 add ```include<./cut-pursuit/include/API.h>``` and call any of the interface functions.
@@ -41,7 +41,7 @@ add ```include<./cut-pursuit/include/API.h>``` and call any of the interface fun
 ### MATLAB
 To compile the MATLAB mex file type the following in MATLAB in the workspace containing the ```cut-pursuit``` folder:
 
-```
+```bash
 mkdir ./cut-pursuit/bin
 addpath('./cut-pursuit/bin/')
 mex CXXFLAGS="\$CXXFLAGS -pthread -Wall -std=c++11 -fopenmp -O3"...
@@ -61,7 +61,7 @@ Eu = 0:(n_nodes-2);
 Ev = 1:(n_nodes-1);
 edge_weight = ones(numel(Eu),1);
 node_weight = ones(n_nodes,1);
-  
+
 [solution, in_component, components] = L0_cut_pursuit_segmentation(single(y), uint32(Eu), uint32(Ev), single(.1)...
     , single(edge_weight), single(node_weight), 1, 2, 2);
 
@@ -79,7 +79,7 @@ title('components')
 
 ### Python
 Compile the library from the ```cut-pursuit``` folder
-```
+```bash
 cd src
 cmake . -DPYTHON_LIBRARY=$CONDAENV/lib/libpython3.6m.so -DPYTHON_INCLUDE_DIR=$CONDAENV/include/python3.6m -DBOOST_INCLUDEDIR=$CONDAENV/include  -DEIGEN3_INCLUDE_DIR=$CONDAENV/include/eigen3
 make
@@ -88,12 +88,31 @@ make
 
 This creates ```libcp.so``` which can be imported in python. see ```test.py``` to test it out.
 
+### Julia
+
+Install `julia`.
+
+Install `CxxWrap.jl`. Just like any registered package, in pkg mode (] at the REPL)
+```
+add CxxWrap
+```
+
+This will also install the JlCxx library (in deps/usr relative to the package dir), which is the C++ component of this package. If you want to use existing binaries for this library, set the environment variable JLCXX_DIR to the prefix where libcxxwrap-julia is installed and then add the package or run Pkg.build("CxxWrap").
+
+Compile the library from the `cut-pursuit` folder
+```bash
+cd cut-pursuit/src
+cmake . -DPYTHON_LIBRARY=$CONDAENV/lib/libpython3.6m.so -DPYTHON_INCLUDE_DIR=$CONDAENV/include/python3.6m -DBOOST_INCLUDEDIR=$CONDAENV/include -DEIGEN3_INCLUDE_DIR=$CONDAENV/include/eigen3- DJlCxx_DIR=/home/josh/.julia/packages/CxxWrap/KcmSi/deps/usr/lib/cmake/JlCxx/
+make
+```
+
+
 # References:
 Cut Pursuit: fast algorithms to learn piecewise constant functions on general weighted graphs,
 L. Landrieu and G. Obozinski, SIAM Journal on Imaging Science 2017, Vol. 10, No. 4 : pp. 1724-1766
 [[hal link]](https://hal.archives-ouvertes.fr/hal-01306779)
 
-Cut-pursuit algorithm for nonsmooth functionals regularized by graph total variation, H. Raguet and L. Landrieu, in preparation. 
+Cut-pursuit algorithm for nonsmooth functionals regularized by graph total variation, H. Raguet and L. Landrieu, in preparation.
 
 if using the L0-cut pursuit algorithm with \Omega other than R, one must also cite:
 
