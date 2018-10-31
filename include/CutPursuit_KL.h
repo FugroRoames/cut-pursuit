@@ -8,7 +8,7 @@ class CutPursuit_KL : public CutPursuit<T>
 {
     public:
     ~CutPursuit_KL(){
-    };      
+    };
     virtual std::pair<T,T> compute_energy() override
     {
         VertexAttributeMap<T> vertex_attribute_map
@@ -74,7 +74,7 @@ class CutPursuit_KL : public CutPursuit<T>
         this->init_labels(binary_label);
         VectorOfCentroids<T> centers(nb_comp, this->dim);
         //-----main loop----------------------------------------------------------------
-                // the optimal flow is iteratively approximated
+        // the optimal flow is iteratively approximated
         for (uint32_t  i_step = 1; i_step <= this->parameter.flow_steps; i_step++)
         {
             //compute h_1 and h_2
@@ -122,11 +122,12 @@ class CutPursuit_KL : public CutPursuit<T>
         T total_weight[2];
         uint32_t  nb_comp = this->components.size();
         T best_energy, current_energy;
+
         //#pragma omp parallel for private(kernels, total_weight, best_energy, current_energy) if (this->parameter.parallel && nb_comp>8) schedule(dynamic)
         for (uint32_t  i_com = 0; i_com < nb_comp; i_com++)
         {
             uint32_t  comp_size = this->components[i_com].size();
-            std::vector<bool> potential_label(comp_size);    
+            std::vector<bool> potential_label(comp_size);
             std::vector<T> energy_array(comp_size);
             std::vector<T> constant_part(comp_size);
             std::vector< std::vector<T> > smooth_obs(comp_size, std::vector<T>(2,0));
@@ -151,7 +152,7 @@ class CutPursuit_KL : public CutPursuit<T>
                         + (1 - this->parameter.smoothing)
                         * vertex_attribute_map(this->components[i_com][i_ver]).observation[i_dim];
                     constant_part[i_ver] += smooth_obs[i_ver][i_dim]
-                           * log(smooth_obs[i_ver][i_dim]) 
+                           * log(smooth_obs[i_ver][i_dim])
                            * vertex_attribute_map(this->components[i_com][i_ver]).weight;
                  }
             }
@@ -250,7 +251,7 @@ class CutPursuit_KL : public CutPursuit<T>
                             total_weight[0] += vertex_attribute_map(this->components[i_com][i_ver]).weight;
                             for(uint32_t  i_dim=0; i_dim < this->dim; i_dim++)
                             {
-                                kernels[0][i_dim] += 
+                                kernels[0][i_dim] +=
                                     vertex_attribute_map(this->components[i_com][i_ver]).observation[i_dim]
                                     * vertex_attribute_map(this->components[i_com][i_ver]).weight ;
                              }
@@ -260,7 +261,7 @@ class CutPursuit_KL : public CutPursuit<T>
                             total_weight[1] += vertex_attribute_map(this->components[i_com][i_ver]).weight;
                             for(uint32_t  i_dim=0; i_dim < this->dim; i_dim++)
                             {
-                                kernels[1][i_dim] += 
+                                kernels[1][i_dim] +=
                                     vertex_attribute_map(this->components[i_com][i_ver]).observation[i_dim]
                                     * vertex_attribute_map(this->components[i_com][i_ver]).weight;
                             }

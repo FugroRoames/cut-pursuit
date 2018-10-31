@@ -40,7 +40,7 @@ class CutPursuit
     uint32_t nEdge;   // number of edges between vertices (not counting the edge to source/sink)
     CP::VertexIterator<T> lastIterator; //iterator pointing to the last vertex which is neither sink nor source
     CPparameter<T> parameter;
-    public:      
+    public:
     CutPursuit(uint32_t nbVertex = 1)
     {
         this->main_graph     = Graph<T>(nbVertex);
@@ -65,7 +65,7 @@ class CutPursuit
         this->parameter.parallel = true;
     }
     virtual ~CutPursuit(){
-    };  
+    };
     //=============================================================================================
     std::pair<std::vector<T>, std::vector<T>> run()
     {
@@ -321,7 +321,7 @@ class CutPursuit
     {   //compute the reduced graph, and if need be performed a backward check
         this->compute_connected_components();
         if (this->parameter.backward_step)
-        {   //compute the structure of the reduced graph        
+        {   //compute the structure of the reduced graph
             this->compute_reduced_graph();
             //check for beneficial merges
             this->merge();
@@ -450,8 +450,8 @@ class CutPursuit
             = boost::get(boost::vertex_bundle, this->main_graph);
         this->reduced_graph = Graph<T>(this->components.size());
         VertexAttributeMap<T> component_attribute_map = boost::get(boost::vertex_bundle, this->reduced_graph);
-        //----fill the value sof the reduced graph----
-        #pragma omp parallel for schedule(dynamic) 
+        //----fill the values of the reduced graph----
+        #pragma omp parallel for schedule(dynamic)
         for (uint32_t ind_com = 0;  ind_com < this->components.size(); ind_com++)
         {
             std::pair<std::vector<T>, T> component_values_and_weight = this->compute_value(ind_com);
@@ -498,7 +498,7 @@ class CutPursuit
             //try to add the border-edge linking those components in the reduced graph
             boost::tie(border_edge_current, reducedEdgeExists)
                     = boost::edge(source_component, target_component, this->reduced_graph);
-            if (!reducedEdgeExists)                
+            if (!reducedEdgeExists)
             {   //this border-edge did not already existed in the reduced graph
                 //border_edge_current = boost::add_edge(source_component, target_component, this->reduced_graph).first;
                 border_edge_current = boost::add_edge(source_component, target_component, this->reduced_graph).first;
@@ -521,7 +521,7 @@ class CutPursuit
         // TODO: right now we only do one loop through the heap of potential mergeing, and only
         //authorize one mergeing per component. We could update the gain and merge until it is no longer
         //beneficial
-        //check wether the energy can be decreased by removing edges from the reduced graph     
+        //check wether the energy can be decreased by removing edges from the reduced graph
         //----load graph structure---
         VertexAttributeMap<T> vertex_attribute_map
                 = boost::get(boost::vertex_bundle, this->main_graph);
@@ -582,7 +582,7 @@ class CutPursuit
             if (mergeing_information.merge_gain<=0)
             {   //no more mergeing provide a gain in energy
                 break;
-            }            
+            }
             merge_queue.pop();
             if (is_merged.at(mergeing_information.comp1) || is_merged.at(mergeing_information.comp2))
             {

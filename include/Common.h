@@ -3,7 +3,8 @@
 #include <sstream>
 #include <ctime>
 #include <functional>
-#include<stdio.h>
+#include <stdio.h>
+#include <vector>
 
 
 #ifndef COMMON_H
