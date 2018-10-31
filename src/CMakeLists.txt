@@ -16,6 +16,9 @@ set(CMAKE_LD_FLAG "${CMAKE_LD_FLAGS} -shared -Wl -fPIC --export-dynamic -O3 -Wal
 
 if(DEFINED JlCxx_DIR)
     # JlCxx_DIR needs to be passed in with -D
+    find_package(Boost 1.58.0 COMPONENTS graph REQUIRED) #system filesystem thread serialization
+    include_directories(${Boost_INCLUDE_DIRS})
+    link_directories(${Boost_LIBRARY_DIRS})
 
     find_package(JlCxx REQUIRED)
     set(CMAKE_INSTALL_RPATH "${JlCxx_DIR}/../")
@@ -24,6 +27,7 @@ if(DEFINED JlCxx_DIR)
 
     add_library(cpjl SHARED cutpursuit_julia.cpp ${CP_HEADERS})
     target_link_libraries(cpjl
+                          ${Boost_LIBRARIES}
                           JlCxx::cxxwrap_julia)
 endif()
 
