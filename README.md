@@ -95,7 +95,16 @@ Install Julia. Just like any julia package, enter `pkg` mode using `]` at the re
 add CutPursuit
 ```
 
-And you're done! See `https://github.com/FugroRoames/CutPursuit.jl` for usage.
+And you're done! See [CutPursuit.jl](https://github.com/FugroRoames/CutPursuit.jl) for usage.
+
+#### Manual Julia installation
+Install [CxxWrap](https://github.com/JuliaInterop/CxxWrap.jl). Add `JlCxx_DIR` variable to the above python cmake config and point to where the `JlCxx` library was installed (NOTE change below example to point to your install location).
+
+```bash
+cd src
+cmake . -DBOOST_INCLUDEDIR=$CONDAENV/include -DJlCxx_DIR=/home/josh/.julia/packages/CxxWrap/KcmSi/deps/usr/lib/cmake/JlCxx/
+make
+```
 
 # References:
 Cut Pursuit: fast algorithms to learn piecewise constant functions on general weighted graphs,
