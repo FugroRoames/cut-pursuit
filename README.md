@@ -85,27 +85,17 @@ cmake . -DPYTHON_LIBRARY=$CONDAENV/lib/libpython3.6m.so -DPYTHON_INCLUDE_DIR=$CO
 make
 ```
 
-
 This creates ```libcp.so``` which can be imported in python. see ```test.py``` to test it out.
 
 ### Julia
 
-Install `julia`.
+Install Julia. Just like any julia package, enter `pkg` mode using `]` at the repl.
 
-Install `CxxWrap.jl`. Just like any registered package, in pkg mode (] at the REPL)
-```
-add CxxWrap
-```
-
-This will also install the JlCxx library (in deps/usr relative to the package dir), which is the C++ component of this package. If you want to use existing binaries for this library, set the environment variable JLCXX_DIR to the prefix where libcxxwrap-julia is installed and then add the package or run Pkg.build("CxxWrap").
-
-Compile the library from the `cut-pursuit` folder
-```bash
-cd cut-pursuit/src
-cmake . -DPYTHON_LIBRARY=$CONDAENV/lib/libpython3.6m.so -DPYTHON_INCLUDE_DIR=$CONDAENV/include/python3.6m -DBOOST_INCLUDEDIR=$CONDAENV/include -DEIGEN3_INCLUDE_DIR=$CONDAENV/include/eigen3- DJlCxx_DIR=/home/josh/.julia/packages/CxxWrap/KcmSi/deps/usr/lib/cmake/JlCxx/
-make
+```julia
+add CutPursuit
 ```
 
+And you're done! See `https://github.com/FugroRoames/CutPursuit.jl` for usage.
 
 # References:
 Cut Pursuit: fast algorithms to learn piecewise constant functions on general weighted graphs,
