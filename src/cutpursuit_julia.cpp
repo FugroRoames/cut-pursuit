@@ -91,17 +91,6 @@ Result cutpursuit_seg(const uint32_t n_nodes,
     return Result(solution, in_component, components);
 }
 
-// std::cout << "Type of T: "
-//           << boost::typeindex::type_id<T>().pretty_name()
-//   << std::endl;
-
-// template <typename T>
-// struct StdVector
-// {
-//     StdVector(std::vector<uint32_t> i) : ptr(i){}
-//     std::vector<uint32_t> ptr;
-// };
-
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 {
     // jlcxx::static_type_mapping<StdVector>::set_julia_type((jl_datatype_t*)jlcxx::julia_type("StdVector"));
@@ -109,18 +98,21 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
     mod.method("cut_pursuit", &cutpursuit_seg);
 
     mod.add_type<Result>("Result")
-        .method("in_components_test", [](Result& f) { return std::make_tuple(&(f.in_components[0]),
+        .method("in_components", [](Result& f) { return std::make_tuple(&(f.in_components[0]),
                                                                              &(f.in_components[0])+ f.in_components.size()/sizeof(uint32_t),
-                                                                             f.in_components.capacity()); })
+                                                                             f.in_components.capacity()); });
+        // .method("components_test", [](Result& f) { return std::make_tuple(&(f.components[0]),
+        //                                                                   &(f.components[0])+ f.components.size()),
+        //                                                                   f.components.capacity()); })
         // .method("components", [](Result& f, int i) { return f.components.size()); })
-        .method("num_components", [](Result& f) { return f.components.size(); })
-        .method("in_components_disp", [](Result& f) {
-            for (int i = 0; i < f.in_components.size(); i++)
-            {
-                std::cout << i << ": " << f.in_components[i] << std::endl;
-            }
-            return "hi";
-            });
+        // .method("num_components", [](Result& f) { return f.components.size(); })
+        // .method("in_components_disp", [](Result& f) {
+        //     for (int i = 0; i < f.in_components.size(); i++)
+        //     {
+        //         std::cout << i << ": " << f.in_components[i] << std::endl;
+        //     }
+        //     return "hi";
+        //     });
     //     .method("in_components", [](Result& f) { return jlcxx::ArrayRef<uint32_t>(&(f.in_components[0]), f.in_components.size()); })
 
 }
