@@ -26,7 +26,7 @@ if(DEFINED JlCxx_DIR)
     set(CMAKE_MACOSX_RPATH 1)
 
     add_library(cpjl SHARED cutpursuit_julia.cpp ${CP_HEADERS})
-  target_link_libraries(cpjl
+    target_link_libraries(cpjl
                          ${Boost_LIBRARIES}
                           JlCxx::cxxwrap_julia)
 endif()

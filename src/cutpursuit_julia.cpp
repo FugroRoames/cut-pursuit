@@ -1,4 +1,6 @@
-#include <string>
+#include <iostream>
+#include <cstdio>
+#include <vector>
 #include <../include/API.h>
 
 #include "jlcxx/jlcxx.hpp"
