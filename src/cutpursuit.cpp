@@ -72,7 +72,8 @@ struct to_py_tuple
     }
 };
 
-PyObject * cutpursuit_seg(const bpn::ndarray & obs, const bpn::ndarray & source, const bpn::ndarray & target,const bpn::ndarray & edge_weight,  float lambda)
+PyObject * cutpursuit_seg(const bpn::ndarray & obs, const bpn::ndarray & source, const bpn::ndarray & target,const bpn::ndarray & edge_weight,  float lambda,
+                          float mode, float speed, float verbose)
 {//read data and run the L0-cut pursuit partition algorithm
     const uint32_t n_ver = bp::len(obs);
     const uint32_t n_edg = bp::len(source);
@@ -87,7 +88,7 @@ PyObject * cutpursuit_seg(const bpn::ndarray & obs, const bpn::ndarray & source,
     std::vector<uint32_t> in_component(n_ver,0);
     std::vector< std::vector<uint32_t> > components(1,std::vector<uint32_t>(1,0.f));
     CP::cut_pursuit<float>(n_ver, n_edg, n_obs, obs_data, source_data, target_data, edge_weight_data, &node_weight[0]
-             , solution.data(), in_component, components, lambda, 1.f, 2.f, 2.f);
+             , solution.data(), in_component, components, lambda, mode, speed, verbose);
 //    delete[]solution
     return to_py_tuple::convert(Custom_tuple(components, in_component));
 }
